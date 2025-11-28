@@ -1,87 +1,54 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Smart Disease Prediction System</title>
-    <style>
-        body {
-            font-family: Arial;
-            margin: 40px;
-            background: #f5f5f5;
-        }
-        .box {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            width: 400px;
-        }
-        button {
-            padding: 10px;
-            background: green;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            border: none;
-            width: 100%;
-        }
-        #result {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e8ffe8;
-            border-radius: 5px;
-        }
-    </style>
-</head>
-<body>
+import streamlit as st
 
-<h2>Smart Disease Prediction System</h2>
+st.set_page_config(page_title="Smart Disease Prediction System")
 
-<div class="box">
-    <label>Enter Symptoms:</label><br><br>
-    <input id="symptoms" type="text" placeholder="Example: fever, cough" style="width:100%; padding:10px;"><br><br>
+def predict_disease(symptoms):
+    symptoms = [s.lower().strip() for s in symptoms]
 
-    <button onclick="predict()">Predict Disease</button>
+    if "fever" in symptoms and "cough" in symptoms:
+        return "Flu", 0.50
+    if "headache" in symptoms and "vomiting" in symptoms:
+        return "Migraine", 0.70
+    if "chest pain" in symptoms or "breathing problem" in symptoms:
+        return "Heart Attack (Suspected)", 0.95
+    if "vomiting" in symptoms and "stomach pain" in symptoms:
+        return "Food Poisoning", 0.60
 
-    <div id="result"></div>
-</div>
+    return "Common Cold", 0.20
 
-<script>
-
-function predict() {
-    let s = document.getElementById("symptoms").value.toLowerCase();
-    let disease = "";
-    let medicine = "";
-    let danger = "";
-
-    // Simple rule based prediction
-    if (s.includes("fever") && s.includes("cough")) {
-        disease = "Flu / Viral Infection";
-        medicine = "Paracetamol, Cough Syrup, Rest";
-        danger = "Low Risk";
-    }
-    else if (s.includes("headache") && s.includes("vomiting")) {
-        disease = "Migraine";
-        medicine = "Pain Killer, Hydration, Rest";
-        danger = "Medium Risk";
-    }
-    else if (s.includes("chest pain") || s.includes("breathing problem")) {
-        disease = "Possible Heart / Lung Issue";
-        medicine = "No self-medication";
-        danger = "High Risk — Visit Doctor Immediately";
-    }
-    else {
-        disease = "Unknown — Symptoms not found";
-        medicine = "Consult Doctor";
-        danger = "Check properly";
-    }
-
-    document.getElementById("result").innerHTML = `
-        <b>Disease Prediction:</b> ${disease}<br><br>
-        <b>Suggested Medicine:</b> ${medicine}<br><br>
-        <b>Danger Level:</b> ${danger}
-    `;
+medicine_db = {
+    "Flu": ["Paracetamol 500mg", "Steam inhalation", "Rest well"],
+    "Migraine": ["Painkiller", "Silent and dark place rest", "Hydration"],
+    "Heart Attack (Suspected)": ["❗ Emergency - Go to Doctor Immediately"],
+    "Food Poisoning": ["ORS", "Light food only", "Avoid oily food"],
+    "Common Cold": ["Cetirizine 10mg", "Warm water", "Rest"]
 }
 
-</script>
+st.title("🧠 Smart Disease Prediction System")
+st.write("Enter symptoms separated by comma (,):")
 
-</body>
-</html>
+input_text = st.text_input("Example: fever, cough")
+
+if st.button("Predict"):
+    if not input_text.strip():
+        st.error("⚠ Please enter symptoms!")
+    else:
+        symptoms_list = [s.strip() for s in input_text.split(",")]
+
+        disease, severity = predict_disease(symptoms_list)
+
+        st.subheader("🩺 Predicted Disease")
+        st.success(f"{disease}")
+        st.write(f"Severity Score: {severity}")
+
+        st.subheader("💊 Medicines / Care")
+        for m in medicine_db.get(disease, ["Consult a doctor"]):
+            st.write("• " + m)
+
+        # Danger condition
+        if severity >= 0.70 or "chest pain" in input_text.lower() or "breathing problem" in input_text.lower():
+            st.error("🚨 DANGER: Go to Doctor Immediately!")
+        else:
+            st.info("🙂 Not a high risk. If symptoms increase, consult doctor.")
+
+st.caption("⚠ This system gives suggestions only. Always consult a doctor.")
