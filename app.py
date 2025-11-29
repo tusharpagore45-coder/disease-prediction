@@ -1,41 +1,69 @@
 import streamlit as st
 
-st.set_page_config(page_title="Smart Disease Prediction System", page_icon="🧠", layout="wide")
+# Page design
+st.set_page_config(page_title="Smart Disease Prediction System", layout="centered")
 
-# Disease database
-DISEASE_DB = {
-    ("fever", "cough", "cold"): ("Flu", ["Paracetamol", "Cough Syrup", "Drink warm water"], "Medium"),
-    ("fever", "headache", "body pain"): ("Dengue", ["Paracetamol", "ORS", "Platelet monitoring"], "High - Doctor Required"),
-    ("chest pain", "breathlessness"): ("Heart Attack (Emergency)", ["Aspirin", "Call ambulance"], "Very High - Immediate Hospital"),
-    ("vomiting", "stomach pain"): ("Food Poisoning", ["ORS", "Antibiotic", "Hydration"], "Low"),
-    ("fever", "rash", "joint pain"): ("Chikungunya", ["Painkillers", "Rest"], "Medium"),
-    ("sneezing", "itchy eyes"): ("Allergy", ["Antihistamine", "Avoid dust"], "Low"),
-    ("loose motion", "vomiting"): ("Diarrhea", ["ORS", "Zinc tablets"], "Medium"),
-    ("headache", "vomiting", "high fever"): ("Meningitis", ["Hospitalization required"], "High - Doctor Required"),
-    ("weight loss", "night sweats", "cough"): ("TB", ["TB Test", "Doctor Consultation"], "High"),
+st.markdown("<h1 style='color:yellow; text-align:center;'>🧠 Smart Disease Prediction System</h1>", unsafe_allow_html=True)
+
+# Disease data
+disease_data = {
+    "Dengue": {
+        "symptoms": ["fever", "headache", "body pain", "vomiting"],
+        "medicines": ["Paracetamol", "ORS", "Platelet monitoring"],
+        "alert": "High - Doctor Required"
+    },
+    "Malaria": {
+        "symptoms": ["fever", "chills", "sweating", "headache"],
+        "medicines": ["Chloroquine", "Paracetamol"],
+        "alert": "Medium - Doctor Check-Up Advised"
+    },
+    "COVID-19": {
+        "symptoms": ["fever", "cough", "breathing problem", "loss of taste"],
+        "medicines": ["Paracetamol", "Steam Inhalation", "Vitamin C"],
+        "alert": "High - Doctor Required"
+    },
+    "Flu": {
+        "symptoms": ["fever", "cold", "sore throat", "headache"],
+        "medicines": ["Paracetamol", "Cough Syrup"],
+        "alert": "Low - Home Care"
+    },
+    "Typhoid": {
+        "symptoms": ["fever", "weakness", "stomach pain", "headache"],
+        "medicines": ["Antibiotics (Doctor prescribed)", "ORS"],
+        "alert": "High - Doctor Required"
+    }
 }
 
-def predict_disease(input_symptoms):
-    symptoms = [s.lower().strip() for s in input_symptoms.split(",")]
+# Prediction function
+def predict_disease(symptoms):
+    for disease, data in disease_data.items():
+        match = any(symptom.lower() in data["symptoms"] for symptom in symptoms)
+        if match:
+            return disease, data["medicines"], data["alert"]
+    return "Unknown", [], "Low - Home Care"
 
-    for key, value in DISEASE_DB.items():
-        if all(symptom in symptoms for symptom in key):
-            return value
-        
-    return ("Common Cold", ["Rest", "Steam inhalation"], "Low")
-
-# UI
-st.markdown("<h1 style='color:yellow;'>🧠 Smart Disease Prediction System</h1>", unsafe_allow_html=True)
-st.write("Enter 2 or 3 symptoms separated by comma: (Example: fever, cough, cold)")
-user_input = st.text_input("Symptoms")
+# User Input
+st.write("Enter 2 or 3 symptoms separated by comma:")
+user_input = st.text_input("Symptoms:", placeholder="fever, headache, cough")
 
 if st.button("Predict"):
-    if user_input:
-        disease, medicine, alert = predict_disease(user_input)
-        st.success(f"🩺 Disease: **{disease}**")
-        st.warning(f"💊 Suggested Medicines:\n- " + "\n- ".join(medicine))
-        st.info(f"⚠️ Alert Level: **{alert}**")
+    if user_input.strip() == "":
+        st.warning("⚠️ Please enter symptoms!")
     else:
-        st.error("Please enter symptoms!")
+        symptoms = [s.strip().lower() for s in user_input.split(",")]
+        disease, medicines, alert = predict_disease(symptoms)
 
-st.caption("🚨 This tool only gives suggestions. Always consult a doctor.")
+        st.success(f"🩺 Disease: {disease}")
+
+        if medicines:
+            st.markdown("### 💊 Suggested Medicines:")
+            for med in medicines:
+                st.write(f"- {med}")
+
+        # Alert level color
+        if "High" in alert:
+            st.error(f"🚨 Alert Level: **{alert}**")
+        else:
+            st.warning(f"⚠️ Alert Level: **{alert}**")
+
+st.markdown("<br><br><p style='color:red;'>🚑 This tool only gives suggestions. Always consult a doctor.</p>", unsafe_allow_html=True)
