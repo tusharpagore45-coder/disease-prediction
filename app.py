@@ -1,21 +1,41 @@
 import streamlit as st
 
-# Basic page settings
-st.set_page_config(page_title="Smart Disease Predictor", page_icon="🧠", layout="centered")
+st.set_page_config(page_title="Smart Disease Prediction System", page_icon="🧠", layout="wide")
 
-# Title
-st.title("🧠 Smart Disease Prediction System")
+# Disease database
+DISEASE_DB = {
+    ("fever", "cough", "cold"): ("Flu", ["Paracetamol", "Cough Syrup", "Drink warm water"], "Medium"),
+    ("fever", "headache", "body pain"): ("Dengue", ["Paracetamol", "ORS", "Platelet monitoring"], "High - Doctor Required"),
+    ("chest pain", "breathlessness"): ("Heart Attack (Emergency)", ["Aspirin", "Call ambulance"], "Very High - Immediate Hospital"),
+    ("vomiting", "stomach pain"): ("Food Poisoning", ["ORS", "Antibiotic", "Hydration"], "Low"),
+    ("fever", "rash", "joint pain"): ("Chikungunya", ["Painkillers", "Rest"], "Medium"),
+    ("sneezing", "itchy eyes"): ("Allergy", ["Antihistamine", "Avoid dust"], "Low"),
+    ("loose motion", "vomiting"): ("Diarrhea", ["ORS", "Zinc tablets"], "Medium"),
+    ("headache", "vomiting", "high fever"): ("Meningitis", ["Hospitalization required"], "High - Doctor Required"),
+    ("weight loss", "night sweats", "cough"): ("TB", ["TB Test", "Doctor Consultation"], "High"),
+}
 
-# Instruction
-st.write("Enter symptoms separated by commas (,) e.g. fever, cough")
+def predict_disease(input_symptoms):
+    symptoms = [s.lower().strip() for s in input_symptoms.split(",")]
 
-# Input box
-symptoms_input = st.text_input("Symptoms:")
+    for key, value in DISEASE_DB.items():
+        if all(symptom in symptoms for symptom in key):
+            return value
+        
+    return ("Common Cold", ["Rest", "Steam inhalation"], "Low")
 
-# Button
+# UI
+st.markdown("<h1 style='color:yellow;'>🧠 Smart Disease Prediction System</h1>", unsafe_allow_html=True)
+st.write("Enter 2 or 3 symptoms separated by comma: (Example: fever, cough, cold)")
+user_input = st.text_input("Symptoms")
+
 if st.button("Predict"):
-    if symptoms_input.strip() == "":
-        st.error("⚠️ Please enter at least one symptom!")
+    if user_input:
+        disease, medicine, alert = predict_disease(user_input)
+        st.success(f"🩺 Disease: **{disease}**")
+        st.warning(f"💊 Suggested Medicines:\n- " + "\n- ".join(medicine))
+        st.info(f"⚠️ Alert Level: **{alert}**")
     else:
-        st.success("🩺 Disease prediction will be shown here.")
-        st.info("This is only for educational purpose. Always consult a doctor.")
+        st.error("Please enter symptoms!")
+
+st.caption("🚨 This tool only gives suggestions. Always consult a doctor.")
